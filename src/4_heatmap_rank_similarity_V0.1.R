@@ -1,7 +1,13 @@
-setwd("/home/marco/workspace/CAGI_2015/p16_assessment/to_git")
-#print the pairwise significance of the P16 challenge evaluations
+##############################################################################################################################################
+#    this script calculate the pairwise significance of challenge evaluations and produce an heatmap figure: Figure 4 in assessment paper    #
+##############################################################################################################################################
+#NOTE: run script 1 before of this code, input data are needed
 
-predictions <- read.delim("data/step05/predictionsRaw.txt", quote="")
+# Clean up the environment
+rm (list=ls())
+setwd(".")
+
+predictions <- read.delim("../results/predictionsRaw.txt", quote="")
 predictions <- as.matrix(predictions)
                                                                      
 for( i in c(9)) {  
@@ -34,7 +40,7 @@ for( i in c(9)) {
   color2D.matplot(rankingSimilarity, axes=FALSE, cellcolors=cellcolors, xlab="", ylab="", sub=paste("Significance of the ", colnames(predictions)[i]," ranking", sep=""))#show.values=TRUE, 
   axis(3, at=0.5:nrow(rankingSimilarity),  labels=labelRankCorrelation)
   axis(2, at=0.5:nrow(rankingSimilarity), labels=rev(labelRankCorrelation))
-  dev.copy(jpeg, filename ="results/main_fig_4.jpeg ",  quality = 95, width = 800, height = 800)
+  dev.copy(jpeg, filename ="../results/main_fig_4.jpeg ",  quality = 95, width = 800, height = 800)
   dev.off()
 }
 

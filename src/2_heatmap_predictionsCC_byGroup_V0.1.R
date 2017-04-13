@@ -1,17 +1,13 @@
 ##################################################################################################################
 #    this script calculate PCCs among predictions and produce an heatmap figure: Figure 2 in assessment paper    #
 ##################################################################################################################
-
-setwd("/home/marco/workspace/CAGI_2015/p16_assessment/to_git/")
-#get the real data
-realData <- read.table(file = "data/step04/real_proliferation.txt", sep="\t", quote="", header=FALSE)
-realData <- as.matrix(realData)
-realValue <- as.numeric(realData[2:11, 3])
-data <- realValue
+# Clean up the environment
+rm (list=ls())
+setwd(".")
 
 #load the prediction
 for(i in 1:22) {
-  prediction <- read.table(file = paste("data/step04/p16_Submission_", i , ".txt", sep=""), sep="\t", quote="", header=FALSE)
+  prediction <- read.table(file = paste("../data/p16_Submission_", i , ".txt", sep=""), sep="\t", quote="", header=FALSE)
   prediction <- as.matrix(prediction)
   predictedValue <- as.numeric(prediction[2:11, 3]) * 100
   data <- cbind(data, predictedValue)
@@ -45,7 +41,7 @@ if (TRUE){
   matr <- matrix(0, ncol(matr_new), ncol(matr_new))
   for (i in 1:ncol(matr_new)) {  
     for (j in 1:ncol(matr_new)) {  
-      matr[i, j] <- cor(matr_new[,i] , matr_new[,j] , method = "pearson", use="pairwise")
+      matr[i, j] <- cor(as.numeric(matr_new[,i]) , as.numeric(matr_new[,j]) , method = "pearson", use="pairwise")
     }
   }
   matr <- round(matr, digits = 1)
@@ -94,7 +90,7 @@ if (TRUE){
   legend("topright", inset=c(-0.43,0.1), legend = labID, col=c("black", "blue", "magenta", "red", "orange", "gold", "pink", "yellow", "green", "grey"),
          pch = 18, cex=0.7, title = "Group identifiers")
   
-  dev.copy(pdf, file = paste("results/main_fig_2.pdf", sep=""))
+  dev.copy(pdf, file = paste("../results/main_fig_2.pdf", sep=""))
   dev.off()
 }
 

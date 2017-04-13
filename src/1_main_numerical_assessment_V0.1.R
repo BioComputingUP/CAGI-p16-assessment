@@ -1,30 +1,29 @@
-# Clean up everything
+##############################################################################################################################
+#                   This scripts calculate the main performance measures presented in main Tables 3 and 4                    #
+#         it also writes 2 tabeles in /results that will be used by other scripts to produce the assessment figures          #
+##############################################################################################################################
+
+# Clean up the environment
 rm (list=ls())
-
 setwd(".")
-
-########################################
-#the script draw few ROC curves for every prediction, and the corresponding AUC
 library(ROCR)
-classThreshold <- c(65, 75, 90)
-########################################
 
-
-#the number of replicates for every prediction and experiment
-#nReplicates <- 10
 #get the real data
-realData <- read.table(file="data/step04/real_proliferation.txt", sep="\t", quote="", header=FALSE)
+realData <- read.table(file="../data/real_proliferation.txt", sep="\t", quote="", header=FALSE)
 realData <- as.matrix(realData)
 realValue <- as.numeric(realData[2:11, 3])
 
 
-# Create empty results matrices
+#create empty results matrices
 resultMatrix <- matrix(ncol = 5, nrow = 22)
 colnames(resultMatrix) <- c("RMSE", "Pearson CC", "Pearson CC p-value", "Kendall CC", "Kendall CC p-value")
 rownames(resultMatrix) <- rep("empty",22)
-#
+
 performanceMatrix <- matrix(ncol = 12, nrow = 22)
-perfParameters <- c("Sens", "Spec","Bal. Accuracy","AUC" ) #,"#predictions_in_10_range"
+perfParameters <- c("Sens", "Spec","Bal. Accuracy","AUC" )
+# set 3 threshold for AUC
+classThreshold <- c(65, 75, 90)
+
 listnames <-c()
 for (l in classThreshold){
   for(m in perfParameters){
@@ -34,10 +33,12 @@ for (l in classThreshold){
 colnames(performanceMatrix) <-listnames 
 rownames(performanceMatrix) <-rep("empty",22)
 
-#Calculate performance indexes: CC, AUC, PWSD,...
+#############################################################
+#     Calculate performance measures: CC, AUC, PWSD,...     #
+#############################################################
 #load the prediction
 for(i in 1:22) {
-  prediction <- read.table(file=paste("data/step04/p16_Submission_", i , ".txt", sep=""), sep="\t", quote="", header=FALSE)
+  prediction <- read.table(file=paste("../data/p16_Submission_", i , ".txt", sep=""), sep="\t", quote="", header=FALSE)
   prediction <- as.matrix(prediction)
   predictedValue <- as.numeric(prediction[2:11, 3]) * 100
   predictedSTD <- as.numeric(prediction[2:11, 4]) * 100 #as consequence, all "*" becomes "NA" NOTE: all Warnings messages are harmless
@@ -68,16 +69,15 @@ for(i in 1:22) {
   #get AUC and other performance indexes
   if (T) {
     legendText <- as.character(classThreshold)
-    
-    #the set of AUC for every predictor
     performanceList <- c()
-    #draw a ROC curve for every threshold
     for(j in 1:length(classThreshold)) {
       realClass <- realValue
       realClass[ which(realValue[] > classThreshold[j]) ] <- 1
       realClass[ which(realValue[] <= classThreshold[j]) ] <- 0
       
       #get predicted classes
+      classThreshold <- c(65, 75, 90)
+      
       predClass <- predictedValue
       predClass[ which(predictedValue[] > classThreshold[j]) ] <- 1
       predClass[ which(predictedValue[] <= classThreshold[j]) ] <- 0
@@ -100,38 +100,18 @@ for(i in 1:22) {
       auc <- round(unlist(slot(auc, "y.values")), digits = 6)
       legendText[j] <- paste(legendText[j], " (AUC: ", signif(auc,digits=3), ")")
       performanceList <- c(performanceList, auc)
-      
-      #we can't add a curve if the plot is not initilized
-      # if(j == 1) {
-      #   plot(perf)
-      #   plot(perf, col=rainbow(length(classThreshold))[j], main = paste("Submission ", i))
-      # } else {
-      #   plot(perf, add = TRUE, col=rainbow(length(classThreshold))[j])
-      # }
     }
     ################################
     rownames(performanceMatrix)[i] <- paste("Submission",i) 
     performanceMatrix[i,] <- performanceList
-    ################################
-    # segments(0, 0, 1, 1)
-    # par(xpd=TRUE)
-    # legend(0.55, 0.2, legendText, lty = 1, col = rainbow(length(classThreshold)), title ="Thresholds (%)", cex=0.8)
-    ############################
-    #dev.copy(jpeg, filename=paste(workingFolder, "ROC_", i,".jpg", sep=""), quality = 95)
-    #dev.off()
-    #print(paste("Submission ", j, ", ",  aucList[1:length(aucList)]))
-    
   }
 }
-  
-
-resultMatrix
-performanceMatrix
+#resultMatrix
+#performanceMatrix
 finalMatrix <- cbind (resultMatrix,performanceMatrix)
 finalMatrix <- round(finalMatrix,2)
-finalMatrix
-
-#write.table(finalMatrix, "results/step04/numericalPerformances_table_V0.2.tsv", sep =pRaw "\t" , quote = F, col.names = NA)
+#finalMatrix
+write.table(round(performanceMatrix[,c(1,2,3,5,6,7,9,10,11)], digits = 2), file='../results/sup_tab_3.txt', sep = "\t" , quote = F, col.names = NA )
 
 ############################################################
 #                           PSWD                           #
@@ -145,7 +125,7 @@ count <- 0
 #the cumulative std declared
 cumStd <- vector(mode="numeric", length = 10)
 for(i in 1:22) {
-  prediction <- read.table(file=paste("data/step04/p16_Submission_", i , ".txt", sep=""), sep="\t", quote="", header=FALSE)
+  prediction <- read.table(file=paste("../data/p16_Submission_", i , ".txt", sep=""), sep="\t", quote="", header=FALSE)
   prediction <- as.matrix(prediction)
   #check the first std in each prediction file
   if(prediction[2,4] != "*") {
@@ -158,7 +138,7 @@ cumStd <- cumStd / count
 pswd <-c()
 #load the prediction
 for(i in 1:22) {
-  prediction <- read.table(file=paste("data/step04/p16_Submission_", i , ".txt", sep=""), sep="\t", quote="", header=FALSE)
+  prediction <- read.table(file=paste("../data/p16_Submission_", i , ".txt", sep=""), sep="\t", quote="", header=FALSE)
   prediction <- as.matrix(prediction)
   predictedValue <- as.numeric(prediction[2:11, 3]) * 100
   predictedSTD <- as.numeric(prediction[2:11, 4]) * 100
@@ -167,8 +147,6 @@ for(i in 1:22) {
   #fix to 6 the number of replicates of each experiment
   tvar <- (realValue - predictedValue) / sqrt( (predictedSTD^2)/nReplicates + (realSTD^2)/nReplicates )
   pval <- pt(-abs(tvar),df=pmin(nReplicates, nReplicates)-1)
-  #pval <- dt( tvar , 1 )
-  #print(sum(pval > 0.05))
   pswd <-c(pswd,sum(pval > 0.05))
 }
 
@@ -178,7 +156,7 @@ for(i in 1:22) {
 pswd10 <-c()
 #load the prediction
 for(i in 1:22) {
-  prediction <- read.table(file=paste("data/step04/p16_Submission_", i , ".txt", sep=""), sep="\t", quote="", header=FALSE)
+  prediction <- read.table(file=paste("../data/p16_Submission_", i , ".txt", sep=""), sep="\t", quote="", header=FALSE)
   prediction <- as.matrix(prediction)
   predictedValue <- as.numeric(prediction[2:11, 3]) * 100
   predictedSTD <- as.numeric(prediction[2:11, 4]) * 100
@@ -189,26 +167,23 @@ for(i in 1:22) {
   #fix to 6 the number of replicates of each experiment
   tvar <- (realValue - predictedValue) / sqrt( (predictedSTD^2)/nReplicates + (realSTD^2)/nReplicates )
   pval <- pt(-abs(tvar),df=pmin(nReplicates, nReplicates)-1)
-  #pval <- dt( tvar , 1 )
-  #print(sum(pval > 0.05))
   pswd10 <-c(pswd10,sum(pval > 0.05))
-  #get the pearson correlation coefficient
-  
 }
 #############################################################
 
-
+######              Compose assessment matrix          #####   
 pRaw <- cbind(resultMatrix[,c(2,4,1)], performanceMatrix[,c(4,8,12)])
 pRaw <- cbind(pRaw,pswd)
 pRaw <- cbind(pRaw,pswd10)
-pRaw
-#pRaw[c(8,13,14),5] <-0.42
 
+######          Compose the final ranking matrix       #####
 p <- apply(pRaw,2, function(x) rank(-x, ties.method = "min"))
 p[,3] <- rank(pRaw[,3],ties.method = "min")
-p
+write.table(p, file='../results/predictions.txt', sep = "\t" , quote = F, row.names = F )
 
+######       Compose the final assessment matrix      #####
 pAverall <-p[,c(2,3,5,8)]
 averall <- apply(pAverall,1,function(x) mean(x))
 pRaw <-cbind(pRaw,averall)
-pRaw
+write.table(pRaw, file='../results/predictionsRaw.txt', sep = "\t" , quote = F, row.names = F )
+
