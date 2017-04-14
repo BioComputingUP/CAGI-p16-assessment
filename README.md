@@ -30,5 +30,5 @@ Script | Description
 2 | calculates correlation measure among all predictions and produce an heatmap figure to visualize results
 3 | calculates correlation measure among performance indices and produce an heatmap figure to visualize results
 4 | calculates the pairwise significance of challenge evaluations and produce an heatmap figure
-5 | draws experimental values versus predicted velues graph
+5 | draws experimental values versus predicted values graph
 6 | calculates only PSWD10 and produce a table to identify difficut targets
